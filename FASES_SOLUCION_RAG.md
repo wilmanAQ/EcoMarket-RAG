@@ -1,99 +1,134 @@
-# Documento Explicativo: Fases y Solución del Sistema RAG para EcoMarket
 
+# Fases y Solución del Sistema RAG para EcoMarket
 
-***
+Este documento guía al usuario en la implementación y operación de una solución RAG (Retrieval-Augmented Generation) para EcoMarket, cubriendo desde la selección de componentes hasta la integración y recomendaciones finales.
 
-## Fase 1: Selección de Componentes Clave del Sistema RAG
+---
 
-**Decisiones arquitectónicas principales:**
+## Fase 1: Selección de Componentes Clave del Sistema de RAG
 
 ### 1. Modelo de Embeddings
+- **Recomendado:** `text-embedding-3-large` de Azure OpenAI por su precisión multilingüe y facilidad de integración.
+- **Alternativas:** Modelos open-source de Hugging Face (`all-MiniLM-L6-v2`, `distiluse-base-multilingual-cased`) para despliegues locales o sin dependencia de servicios propietarios.
+- **Consideraciones:** 
+La comparación entre all-MiniLM-L6-v2 y text-embedding-3-large revela diferencias notables en precisión, velocidad, recursos y casos de uso ideales.
 
-- **Elección:** Se selecciona el modelo propietario `text-embedding-3-large` de Azure OpenAI.
-- **Justificación:**
-    - *Precisión.* Este modelo está entrenado con datos multilingües, ofrece muy buena calidad semántica y soporta preguntas en español, crucial para EcoMarket.
-    - *Costo.* Azure OpenAI no requiere infraestructura propia y su precio por 1K tokens es competitivo para escalabilidad.
-    - *Idioma español.* Los modelos open-source de Hugging Face como "distiluse-base-multilingual-cased" también funcionan, pero en pruebas prácticas el modelo de Azure OpenAI ofrece mayor retorno semántico y mejor soporte de textos comerciales.
-    - *Código abierto vs propietario.* El modelo Azure OpenAI fue preferido por simplicidad de configuración, menor overhead operativo y manejo seguro de claves.
+| Modelo                  | Idiomas soportados                              | Precisión en español       | Notas                                                     |
+|--------------------------|------------------------------------------------|----------------------------|-----------------------------------------------------------|
+| all-MiniLM-L6-v2         | Inglés, algo de español/francés/árabe           | Buena en textos cortos     | Mejor rendimiento en inglés; existen variantes multilingües |
+| text-embedding-3-large   | 100+ (incl. español)                            | Excelente, tareas complejas| Soporte robusto en español y más de 100 idiomas           |
 
+En conclusión, text-embedding-3-large es superior para tareas multilingües y para el procesamiento de textos complejos en cualquier idioma principal, mientras que all-MiniLM-L6-v2 es adecuado para aplicaciones bilingües simples o donde la velocidad y el uso local predominan.
 
-### 2. Base de Datos Vectorial
+| Modelo                  | Despliegue local | API externa | Infraestructura requerida        |
+|--------------------------|------------------|--------------|----------------------------------|
+| all-MiniLM-L6-v2         | Sí               | Opcional     | Python, CPU/GPU                  |
+| text-embedding-3-large   | No               | Sí           | API Key, acceso OpenAI/Azure     |
 
-- **Opciones analizadas:** Pinecone, ChromaDB y Weaviate.
-- **Elección:** Pinecone (API en la nube).
-- **Ventajas de Pinecone:**
-    - *Escalabilidad.* Facilidad de crecimiento horizontal en la nube.
-    - *Integración.* Compatible con LangChain y otros frameworks de IA moderna.
-    - *Costo.* Plan gratuito para desarrollo; pago por uso en producción.
-    - *Desventajas:* Dependencia de proveedor externo, pero mitigada por backups y exportabilidad de índices.
-- **Comparativa rápida:**
-    - *ChromaDB:* Muy fácil y rápido en local, pero no escala tan bien para producción cloud.
-    - *Weaviate:* Permite auto-alojamiento, pero tiene más fricción para empezar, y requeriría DevOps adicional.
-    - *Pinecone:* Balance ideal para startups y proyectos académicos/prácticos.
+En conclusión, all-MiniLM-L6-v2 es óptimo para soluciones privadas y flexibles, mientras que text-embedding-3-large simplifica la integración cloud pero impone dependencia de proveedores externos
 
-***
+### 2. Vector Store
+- **Desarrollo local:** ChromaDB por su simplicidad y velocidad.
+- **Producción:** Pinecone (API cloud), Qdrant, Weaviate según necesidades de escalabilidad y filtros avanzados.
+- **Recomendación:** Para pruebas y prototipos, ChromaDB; para producción, Pinecone o Qdrant.
 
-## Fase 2: Creación de la Base de Conocimiento de Documentos
+| Plataforma | Prototipos  | Producción masiva | Facilidad setup   | Escalado y seguridad       |
+|------------|-------------|-------------------|-------------------|----------------------------|
+| ChromaDB   | Excelente   | Limitada          | Instantáneo       | Básico                     |
+| Pinecone   | Adecuado    | Excelente         | Rápido vía SaaS   | Empresarial/SaaS           |
+| Qdrant     | Adecuado    | Excelente         | Moderado          | Avanzado/Personalizable    |
 
-### 1. Identificación de Documentos Clave (Ejemplo EcoMarket)
+En conclusión: ChromaDB acelera prototipado y pruebas locales; Pinecone y Qdrant son recomendados para producción por escalabilidad, features de seguridad, libertad de despliegue y rendimiento robusto.
 
-- **Política de Devoluciones** (PDF): Información sobre procesos, plazos y condiciones.
-- **Inventario de Productos** (CSV/Excel): Lista de productos, SKU, stock y precios.
-- **Preguntas Frecuentes** (JSON): Respuestas estandarizadas sobre envíos, pagos y servicio.
+### 3. Orquestación y Backend
+- **LangChain:** Para pipelines de chunking, embeddings, retrieval y prompts.
+- **FastAPI:** API REST para consultas y gestión de documentos.
+- **Logging:** Loguru para trazabilidad y debugging avanzado.
 
+---
 
-### 2. Segmentación (Chunking)
+## Fase 2: Creación y Mantenimiento de la Base de Conocimiento
 
-- **Estrategias comparadas:**
-    - *Tamaño fijo:* Divide los documentos en fragmentos de n palabras/tokens (ej: 500 tokens).
-    - *Por párrafos:* Separa por saltos de párrafo, útil para preguntas sobre secciones específicas.
-    - *Recursiva:* Une pequeños fragmentos hasta alcanzar tamaño deseado, evitando romper el sentido.
-- **Estrategia seleccionada:**
-    - *Chunk recursivo por tamaño/token y límites semánticos.* Evita cortar frases a la mitad, mejora recuperación y precisión del contexto para la LLM.
+### 1. Identificación y Carga de Documentos
+- **Tipos:** PDF (políticas, manuales), CSV/Excel (inventario), JSON (FAQ), Markdown/HTML (guías).
+- **Carga:** Local (`docs/`) o remota (Azure Blob Storage). Usa los métodos `load_and_index_pdfs` y `load_and_index_pdfs_from_blob`.
 
+### 2. Limpieza y Segmentación (Chunking)
+- **Estrategias:**
+    - Chunking recursivo por tamaño/token (ej. 1000 tokens, solapamiento 200).
+    - Por párrafos o secciones para preservar sentido semántico.
+- **Herramienta:** `RecursiveCharacterTextSplitter` de LangChain.
 
-### 3. Indexación
+### 3. Embeddings e Indexación
+- **Embeddings:** Genera vectores con Azure OpenAI, Hugging Face o Sentence Transformers.
+- **Indexación:** Inserta los chunks y sus embeddings en ChromaDB (o Pinecone/Qdrant en producción), incluyendo metadatos (nombre, tipo, chunk).
 
-- **Flujo:**
+### 4. Actualización y Versionado
+- **Recomendación:** Versiona los documentos y actualiza el índice periódicamente. Usa metadatos para control de versiones y auditoría.
 
-1. Los fragmentos/chunks se generan y limpian (remoción de textos irrelevantes).
-2. Cada chunk se convierte en embedding usando el modelo seleccionado (Azure OpenAI).
-3. Los embeddings, junto al metadata (tipo de documento, referencia), se cargan en Pinecone para búsquedas por similitud.
+---
 
-***
+## Fase 3: Integración, Consulta y Pruebas
 
-## Fase 3: Integración y Ejecución del Código
+### 1. Integración API y Frontend
+- **API:** FastAPI expone endpoints para consulta (`/query`), salud (`/health`) y administración.
+- **Frontend:** Opcionalmente, Streamlit o Gradio para prototipos visuales.
 
-### 1. Preparación con LangChain y Streamlit
+### 2. Flujo de Consulta RAG
+1. Usuario envía pregunta vía API.
+2. Se genera embedding de la consulta.
+3. Se recuperan los chunks más relevantes del vector store.
+4. Se construye el prompt y se consulta el LLM (OpenAI/Azure/HF).
+5. Se retorna la respuesta con citas y contexto.
 
-- *Se usa LangChain para integrar el flujo RAG (retriever, embeddings, prompt construction).* Streamlit provee la interfaz visual para la demo y uso práctico.
+### 3. Pruebas y Validación
+- **Unitarias:** Usa `pytest` y `pytest-asyncio` para validar ingestión, retrieval y generación.
+- **Integración:** Prueba el pipeline completo con documentos de ejemplo.
+- **Observabilidad:** Revisa los logs en `logs/` y usa métricas de recuperación y generación.
 
+### 4. Ventajas y limitaciones
 
-### 2. Código
+- Ventajas
+  - Respuestas actualizadas y auditables; reducción de alucinaciones con citación.
+  - Control de dominio y cumplimiento normativo si se usa índice privado.
+  - Mejora de precisión con recuperación híbrida.
 
-- El repositorio incluye `main.py`, módulos auxiliares para Azure Blob Storage, embeddings en OpenAI, indexación en Pinecone y pruebas unitarias para validar ingestión, retrieval y generación.
-- El código del taller ajusta el modelo base para EcoMarket y lo extiende con el pipeline RAG definido:
-    - Ingestión de documentos multi-formato
-    - Limpieza, chunking y embedding
-    - Indexación y consulta semántica
-    - Presentación conversacional con logging avanzado
+- Limitaciones
+  - Dependencia de calidad del corpus y cobertura documental.
+  - Coste y latencia por pasos adicionales (recuperación y re-ranking).
+  - Riesgos de fuga de información si la gobernanza es débil.
 
+- Mitigaciones
+  - Curación continua; monitoreo de métricas RAG; caché de consultas frecuentes.
+  - Límite de tokens/contexto y compresión de pasajes.
+  - ABAC y segregación de índices por tenant.
+---
 
-### 3. Limitaciones y Suposiciones
+## Fase 4: Recomendaciones y Buenas Prácticas
 
-- *Recursos:* La demo utiliza cuentas gratuitas o educativas de Azure/Pinecone/OpenAI; en producción se recomienda escalar según demanda y volumen documental.
-- *Suposiciones:*
-    - Los documentos subidos a Azure Blob están limpios de datos sensibles.
-    - La cantidad de documentos/consultas no sobrepasa el límite de uso de la cuenta gratuita.
-    - El modelo de embeddings elegido funciona bien en español conversacional y comercial.
-- *Limitaciones posibles:*
-    - Si el tamaño de los documentos es muy grande, el chunking y la indexación pueden tardar algunos minutos.
-    - La calidad de la respuesta depende de la calidad documental y el prompt engineering; respuestas incorrectas pueden ocurrir si el contexto no fue bien indexado o chunked.
-    - El costo de consulta y almacenamiento aumenta con la escala y profundidad de consulta.
+- **Seguridad:** Protege las claves API y restringe el acceso a los endpoints sensibles.
+- **Escalabilidad:** Para grandes volúmenes, considera vector stores cloud y procesamiento batch.
+- **Auditoría:** Versiona los documentos y guarda trazas de consultas y respuestas.
+- **Documentación:** Mantén actualizado el README y los ejemplos en la carpeta `docs/`.
+- **Extensibilidad:** El sistema permite agregar nuevos loaders, modelos y stores según necesidades futuras.
 
-***
+---
 
+## Ejemplo de Ejecución
 
-<div align="center">⁂</div>
-[^1]: https://github.com/camartinezolimpiait/EcoMarket-RAG/blob/main/README.md
+1. Instala dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Configura `.env` con tus claves y parámetros.
+3. Ejecuta la API:
+   ```bash
+   python main.py
+   ```
+4. Accede a la documentación interactiva en `http://localhost:8000/docs`.
+5. Realiza consultas usando el endpoint `/query`.
+
+---
+
+Para dudas, revisa el README, la carpeta `docs/` o contacta al equipo de EcoMarket.
 
