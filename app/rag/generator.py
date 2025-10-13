@@ -82,10 +82,7 @@ class ResponseGenerator:
             
             logger.info("Prepare messages for chat completion")
 
-            logger.info(f"Using API key: {self.client.api_key}")
-            logger.info(f"Using API endpoint: {self.client._azure_endpoint}")
-            
-
+            # Call OpenAI API          
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,

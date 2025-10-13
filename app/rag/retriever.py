@@ -7,6 +7,7 @@ import chromadb
 from typing import List, Dict, Any
 from loguru import logger
 from app.rag.embeddings import EmbeddingService
+from app.rag.embeddings_hugging_face import EmbeddingHuggingFaceService
 from app.config.settings import get_settings
 
 
@@ -15,7 +16,7 @@ class DocumentRetriever:
     """
     Retrieves relevant documents using ChromaDB vector store
     """
-    def __init__(self, embedding_service: EmbeddingService, 
+    def __init__(self, embedding_service: EmbeddingHuggingFaceService, 
                  collection_name: str = "ecomarketdocs"):
         """
         Initialize the document retriever and populate collection with PDF contents
