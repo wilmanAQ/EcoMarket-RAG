@@ -98,8 +98,22 @@ Consulta el archivo `requirements.txt` para versiones exactas y dependencias adi
 
 ---
 
-Para dudas, revisa la documentación en la carpeta `docs/` o contacta al equipo de EcoMarket.
 
+## Ejemplo de Ejecución
+
+1. Instala dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Configura `.env` con tus claves y parámetros.
+3. Ejecuta la API:
+   ```bash
+   python main.py
+   ```
+4. Accede a la documentación interactiva en `http://localhost:8000/docs`.
+5. Realiza consultas usando el endpoint `/query`.
+
+### Ejemplo de consulta con `curl`:
 ```plaintext
 curl -X 'POST' \
   'http://127.0.0.1:8000/query' \
@@ -138,4 +152,6 @@ curl -X 'POST' \
   ],
   "confidence": 0.3709913889567057
 }
-´´´  
+```  
+---
+Para dudas, revisa la documentación en la carpeta `docs/` o contacta al equipo de EcoMarket.
