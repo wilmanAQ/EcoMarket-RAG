@@ -20,7 +20,9 @@ class DocumentRetriever:
                  collection_name: str = "ecomarketdocs"):
         """
         Initialize the document retriever and populate collection with PDF contents
-        
+        Si prefiere usar la biblioteca Hugging Face Transformers, puede manejar manualmente 
+        la tokenización y la agrupación cambia el embedding_service a EmbeddingHuggingFaceService de lo
+        contrario, use EmbeddingService de sentence-transformers.
         Args:
             embedding_service: Service for generating embeddings
             collection_name: Name of the ChromaDB collection
