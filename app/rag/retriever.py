@@ -7,14 +7,14 @@ import chromadb
 from typing import List, Dict, Any
 from loguru import logger
 from app.rag.embeddings import EmbeddingService
+from app.config.settings import get_settings
 
 
 
-class DocumentRetriever:
+class DocumentRetriever:  
     """
     Retrieves relevant documents using ChromaDB vector store
     """
-    
     def __init__(self, embedding_service: EmbeddingService, 
                  collection_name: str = "ecomarketdocs"):
         """
@@ -29,14 +29,20 @@ class DocumentRetriever:
         try:
             logger.info(f"Initializing document retriever with collection: {collection_name}")
             self.embedding_service = embedding_service
+            settings = get_settings()
             self.client = chromadb.Client()
             self.collection = self.client.get_or_create_collection(collection_name)
             self.load_and_index_pdfs()
+            self.load_and_index_pdfs_from_blob(
+                connection_string=settings.blob_storage_connection_string,
+                container_name=settings.blob_container_name
+            )
+            logger.info("DocumentRetriever initialized successfully")
 
         except Exception as e:
             logger.error(f"Error initializing DocumentRetriever: {str(e)}")
             raise
-
+   
     def load_and_index_pdfs(self, docs_folder: str = None):
         """
         Load and register PDF documents from docs_folder, splitting into chunks and indexing.
@@ -75,6 +81,53 @@ class DocumentRetriever:
             logger.error(f"Error loading and indexing PDFs: {str(e)}")
             raise
 
+    def load_and_index_pdfs_from_blob(self, connection_string: str, container_name: str):
+        """
+        Load and register PDF documents from Azure Blob Storage, splitting into chunks and indexing.
+        """
+        from azure.storage.blob import BlobServiceClient
+        from tempfile import TemporaryDirectory
+        from pypdf import PdfReader
+        from langchain.text_splitter import RecursiveCharacterTextSplitter
+        import os
+        try:
+            blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+            container_client = blob_service_client.get_container_client(container_name)
+            blobs = container_client.list_blobs()
+            with TemporaryDirectory() as temp_dir:
+                pdf_files = []
+                for blob in blobs:
+                    if blob.name.lower().endswith('.pdf'):
+                        file_path = os.path.join(temp_dir, os.path.basename(blob.name))
+                        with open(file_path, "wb") as f:
+                            f.write(container_client.download_blob(blob.name).readall())
+                        pdf_files.append(file_path)
+                logger.info(f"Downloaded {len(pdf_files)} PDF files from Azure Blob Storage")
+                for pdf_path in pdf_files:
+                    try:
+                        reader = PdfReader(pdf_path)
+                        text = "\n".join(page.extract_text() or "" for page in reader.pages)
+                        text_temp = text.replace("\n", " ").replace("\r", " ")
+                        if text_temp.strip():
+                            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+                            docs = text_splitter.create_documents([text])
+                            for idx, doc in enumerate(docs):
+                                chunk_text = doc.page_content if hasattr(doc, 'page_content') else str(doc)
+                                embedding = self.embedding_service.embed_text(chunk_text)
+                                self.collection.add(
+                                    documents=[chunk_text],
+                                    embeddings=[embedding.tolist()],
+                                    metadatas=[{"filename": os.path.basename(pdf_path), "chunk": idx}],
+                                    ids=[f"{os.path.splitext(os.path.basename(pdf_path))[0]}_chunk{idx}"]
+                                )
+                            logger.info(f"Indexed PDF in {len(docs)} chunks: {pdf_path}")
+                        else:
+                            logger.warning(f"No text extracted from: {pdf_path}")
+                    except Exception as pdf_err:
+                        logger.error(f"Error processing PDF {pdf_path}: {pdf_err}")
+        except Exception as e:
+            logger.error(f"Error loading and indexing PDFs from blob: {str(e)}")
+            raise
 
     async def retrieve(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
         """

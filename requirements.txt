@@ -8,3 +8,4 @@ transformers==4.38.2
 pypdf
 langchain_community
 langchain
+azure-storage-blob
