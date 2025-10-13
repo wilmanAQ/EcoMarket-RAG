@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     port: int = 8000
     
     # OpenAI
-    embedding_model: str = "text-embedding-3-small"
+    embedding_model: str = "all-MiniLM-L6-v2"
 
     # Azure OpenAI
     azure_openai_key: Optional[str] = Field(None, env="AZURE_OPENAI_KEY")
