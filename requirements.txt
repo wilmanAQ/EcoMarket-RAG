@@ -9,3 +9,5 @@ pypdf
 langchain_community
 langchain
 azure-storage-blob
+chromadb
+openai
