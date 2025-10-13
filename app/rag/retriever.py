@@ -9,25 +9,73 @@ from loguru import logger
 from app.rag.embeddings import EmbeddingService
 
 
+
 class DocumentRetriever:
     """
     Retrieves relevant documents using ChromaDB vector store
     """
     
     def __init__(self, embedding_service: EmbeddingService, 
-                 collection_name: str = "ecomarket_docs"):
+                 collection_name: str = "ecomarketdocs"):
         """
-        Initialize the document retriever
+        Initialize the document retriever and populate collection with PDF contents
         
         Args:
             embedding_service: Service for generating embeddings
             collection_name: Name of the ChromaDB collection
         """
-        logger.info(f"Initializing document retriever with collection: {collection_name}")
-        self.embedding_service = embedding_service
-        self.client = chromadb.Client()
-        self.collection = self.client.get_or_create_collection(collection_name)
-    
+        import os
+        from glob import glob
+        try:
+            logger.info(f"Initializing document retriever with collection: {collection_name}")
+            self.embedding_service = embedding_service
+            self.client = chromadb.Client()
+            self.collection = self.client.get_or_create_collection(collection_name)
+            self.load_and_index_pdfs()
+
+        except Exception as e:
+            logger.error(f"Error initializing DocumentRetriever: {str(e)}")
+            raise
+
+    def load_and_index_pdfs(self, docs_folder: str = None):
+        """
+        Load and register PDF documents from docs_folder, splitting into chunks and indexing.
+        """
+        import os
+        from glob import glob
+        from pypdf import PdfReader
+        from langchain.text_splitter import RecursiveCharacterTextSplitter
+        try:
+            pdf_folder = docs_folder or os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "docs")
+            pdf_files = glob(os.path.join(pdf_folder, "*.pdf"))
+            logger.info(f"Found {len(pdf_files)} PDF files in {pdf_folder}")
+            for pdf_path in pdf_files:
+                try:
+                    reader = PdfReader(pdf_path)
+                    text = "\n".join(page.extract_text() or "" for page in reader.pages)
+                    text_temp = text.replace("\n", " ").replace("\r", " ")
+                    if text_temp.strip():
+                        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+                        docs = text_splitter.create_documents([text])
+                        for idx, doc in enumerate(docs):
+                            chunk_text = doc.page_content if hasattr(doc, 'page_content') else str(doc)
+                            embedding = self.embedding_service.embed_text(chunk_text)
+                            self.collection.add(
+                                documents=[chunk_text],
+                                embeddings=[embedding.tolist()],
+                                metadatas=[{"filename": os.path.basename(pdf_path), "chunk": idx}],
+                                ids=[f"{os.path.splitext(os.path.basename(pdf_path))[0]}_chunk{idx}"]
+                            )
+                        logger.info(f"Indexed PDF in {len(docs)} chunks: {pdf_path}")
+                    else:
+                        logger.warning(f"No text extracted from: {pdf_path}")
+                except Exception as pdf_err:
+                    logger.error(f"Error processing PDF {pdf_path}: {pdf_err}")
+        except Exception as e:
+            logger.error(f"Error loading and indexing PDFs: {str(e)}")
+            raise
+
+
     async def retrieve(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
         """
         Retrieve relevant documents for a query
@@ -41,6 +89,7 @@ class DocumentRetriever:
         """
         try:
             logger.info(f"Retrieving documents for query: {query[:50]}...")
+            
             
             # Generate query embedding
             query_embedding = self.embedding_service.embed_text(query)

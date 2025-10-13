@@ -17,10 +17,8 @@ from app.rag.embeddings import EmbeddingService
 from app.rag.retriever import DocumentRetriever
 from app.rag.generator import ResponseGenerator
 from app.config.settings import get_settings
-from app.utils.logging_config import setup_logging
-
 # Setup logging
-setup_logging()
+logger.info("Logging initialized")
 
 # Global instances
 embedding_service = None
@@ -65,6 +63,9 @@ app = FastAPI(
     title="EcoMarket RAG API",
     description="RAG-based product information and recommendation system",
     version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
     lifespan=lifespan
 )
 

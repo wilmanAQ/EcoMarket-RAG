@@ -6,13 +6,14 @@ Handles document and query embeddings using sentence transformers
 import numpy as np
 from typing import List, Union
 from sentence_transformers import SentenceTransformer
+import torch
 import torch.nn.functional as F
 from loguru import logger
 
 
-class EmbeddingService:
+class EmbeddingHuggingFaceService:
     """
-    Service for generating embeddings using sentence transformers
+    Service for generating embeddings using Hugging Facecls transformers
     """
     
     def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
