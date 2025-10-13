@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+loguru
+pydantic
+torch==2.3.0
+torchvision==0.18.0
+transformers==4.38.2
+pypdf
+langchain_community
+langchain
+azure-storage-blob
