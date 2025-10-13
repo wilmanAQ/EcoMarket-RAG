@@ -114,21 +114,5 @@ En conclusión: ChromaDB acelera prototipado y pruebas locales; Pinecone y Qdran
 
 ---
 
-## Ejemplo de Ejecución
-
-1. Instala dependencias:
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. Configura `.env` con tus claves y parámetros.
-3. Ejecuta la API:
-   ```bash
-   python main.py
-   ```
-4. Accede a la documentación interactiva en `http://localhost:8000/docs`.
-5. Realiza consultas usando el endpoint `/query`.
-
----
-
 Para dudas, revisa el README, la carpeta `docs/` o contacta al equipo de EcoMarket.
 
