@@ -1,174 +1,299 @@
-
 # Fases y Solución del Sistema RAG para EcoMarket
 
 Este documento guía al usuario en la implementación y operación de una solución RAG (Retrieval-Augmented Generation) para EcoMarket, cubriendo desde la selección de componentes hasta la integración y recomendaciones finales.
 
----
+# 🧩 Fase 1: Selección de Componentes Clave del Sistema RAG  
 
-## Fase 1: Selección de Componentes Clave del Sistema de RAG
+## 1. Modelo de Embeddings  
 
-### 1. Modelo de Embeddings
-La selección de un buen modelo de embedding es fundamental en una solución RAG porque determina cómo se representan los documentos como vectores numéricos, lo que impacta directamente la capacidad del sistema para recuperar información relevante y dar respuestas precisas. Según el repositorio de EcoMarket-RAG, elegir el modelo adecuado afecta varios aspectos críticos:
+### 🧠 Contexto general  
 
-**Precisión semántica:** Un modelo avanzado como text-embedding-3-large permite capturar el significado profundo y los matices de textos complejos, especialmente en español y contextos multilingües. Esto garantiza que el sistema pueda identificar documentos relevantes incluso cuando las consultas utilizan sinónimos, frases complejas o lenguaje especializado.
+En el desarrollo del **Sistema RAG (Retrieval-Augmented Generation)** para **EcoMarket**, el modelo de *embeddings* es el núcleo semántico del sistema.  
+Su función es transformar los documentos oficiales de la empresa —**Política de Garantía**, **Política de Devolución**, **Política de Compra del Cliente** y **Política de Proveedores**— en **vectores numéricos** que representen su significado.  
 
-**Cobertura idiomática:** Utilizar un modelo que soporte múltiples idiomas, como text-embedding-3-large, facilita que el sistema trabaje con documentos y consultas en español, inglés y otros idiomas necesarios para EcoMarket, dando respuesta adecuada en cada caso.
-
-**Eficiencia operativa:** Un modelo eficiente optimiza velocidad de consulta y uso de recursos. Modelos open-source como all-MiniLM-L6-v2 pueden ser idóneos para despliegues locales y aplicaciones donde la velocidad y privacidad predominan, pero ofrecen menor precisión y cobertura en español comparado con modelos propietarios.
-
-**Escalabilidad y flexibilidad:** La elección impacta la facilidad de integración con APIs externas, la posibilidad de escalar en la nube y el manejo de infraestructura propia. Modelos como text-embedding-3-large simplifican la integración cloud, mientras que las alternativas open-source brindan flexibilidad y control.
-
-Un buen modelo de embedding garantiza que el motor de búsqueda realmente entienda y recupere la información más relevante del corpus documental de la empresa, optimizando precisión, velocidad y adaptabilidad para los usuarios y los desarrolladores de EcoMarket-RAG.
-- **Recomendado:** `text-embedding-3-large` de Azure OpenAI por su precisión multilingüe y facilidad de integración.
-- **Alternativas:** Modelos open-source de Hugging Face (`all-MiniLM-L6-v2`, `distiluse-base-multilingual-cased`) para despliegues locales o sin dependencia de servicios propietarios.
-- **Consideraciones:** 
-La comparación entre all-MiniLM-L6-v2 y text-embedding-3-large revela diferencias notables en precisión, velocidad, recursos y casos de uso ideales.
-
-| Modelo                  | Idiomas soportados                              | Precisión en español       | Notas                                                     |
-|--------------------------|------------------------------------------------|----------------------------|-----------------------------------------------------------|
-| all-MiniLM-L6-v2         | Inglés, algo de español/francés/árabe           | Buena en textos cortos     | Mejor rendimiento en inglés; existen variantes multilingües |
-| text-embedding-3-large   | 100+ (incl. español)                            | Excelente, tareas complejas| Soporte robusto en español y más de 100 idiomas           |
-
-En conclusión, text-embedding-3-large es superior para tareas multilingües y para el procesamiento de textos complejos en cualquier idioma principal, mientras que all-MiniLM-L6-v2 es adecuado para aplicaciones bilingües simples o donde la velocidad y el uso local predominan.
-
-| Modelo                  | Despliegue local | API externa | Infraestructura requerida        |
-|--------------------------|------------------|--------------|----------------------------------|
-| all-MiniLM-L6-v2         | Sí               | Opcional     | Python, CPU/GPU                  |
-| text-embedding-3-large   | No               | Sí           | API Key, acceso OpenAI/Azure     |
-
-En conclusión, all-MiniLM-L6-v2 es óptimo para soluciones privadas y flexibles, mientras que text-embedding-3-large simplifica la integración cloud pero impone dependencia de proveedores externos
-
-### 2. Vector Store
-La selección adecuada del **Vector Store** es crucial en una solución RAG como EcoMarket porque impacta directamente la eficiencia, escalabilidad y seguridad en la búsqueda y recuperación de información:
-
-**Rendimiento en búsquedas:** El Vector Store almacena los embeddings de los documentos, permitiendo realizar búsquedas por similitud semántica. Una elección acertada garantiza respuestas rápidas y relevantes, especialmente cuando el volumen de información crece.
-
-**Escalabilidad:** Soluciones como ChromaDB son excelentes para prototipos sencillos y pruebas locales, pero su uso en producción es limitado. Por el contrario, opciones empresariales como Pinecone, Qdrant o Weaviate están diseñadas para manejar grandes volúmenes de datos, múltiples usuarios concurrentes y garantizar alta disponibilidad.
-
-**Facilidad de integración:** Un Vector Store bien seleccionado facilita la conexión con APIs, automatizaciones y otras herramientas del ecosistema, acelerando el desarrollo y reduciendo la curva de aprendizaje.
-
-**Seguridad y gobernanza:** En sistemas empresariales, la protección de datos y el cumplimiento normativo son esenciales. Los Vector Stores avanzados ofrecen autenticación, control de acceso, segregación de índices y auditoría de consultas, mitigando riesgos de fuga y facilitando la trazabilidad.
-
-**Flexibilidad y personalización:** Pinecone, Qdrant y Weaviate, por ejemplo, permiten configuraciones avanzadas, despliegue local o en la nube, y filtros personalizados según los requisitos del negocio.
-
-La correcta selección del Vector Store es clave para asegurar que la solución RAG sea rápida, escalable, segura y fácil de mantener, adaptándose a las necesidades actuales y futuras del proyecto EcoMarket-RAG.
-- **Desarrollo local:** ChromaDB por su simplicidad y velocidad.
-- **Producción:** Pinecone (API cloud), Qdrant, Weaviate según necesidades de escalabilidad y filtros avanzados.
-- **Recomendación:** Para pruebas y prototipos, ChromaDB; para producción, Pinecone o Qdrant.
-
-| Plataforma | Prototipos  | Producción masiva | Facilidad setup   | Escalado y seguridad       |
-|------------|-------------|-------------------|-------------------|----------------------------|
-| ChromaDB   | Excelente   | Limitada          | Instantáneo       | Básico                     |
-| Pinecone   | Adecuado    | Excelente         | Rápido vía SaaS   | Empresarial/SaaS           |
-| Qdrant     | Adecuado    | Excelente         | Moderado          | Avanzado/Personalizable    |
-
-En conclusión: ChromaDB acelera prototipado y pruebas locales; Pinecone y Qdrant son recomendados para producción por escalabilidad, features de seguridad, libertad de despliegue y rendimiento robusto.
-
-### 3. Orquestación y Backend
-Una orquestación eficiente es esencial en una solución RAG como EcoMarket para garantizar que todos los componentes del sistema trabajen de manera integrada, fluida y escalable, una orquestación adecuada facilita la gestión de flujos de datos, la comunicación entre servicios y la automatización de tareas, lo que resulta en una experiencia de usuario final más coherente y efectiva.
-- **LangChain:** Aporta una poderosa capa de orquestación para automatizar y encadenar procesos clave (pipelines de chunking, embeddings, retrieval y prompts) segmentación (chunking), generación de embeddings, búsqueda semántica (retrieval) y construcción de prompts para modelos de lenguaje, esto permite definir pipelines robustos y adaptables, asegurar la reproducibilidad de los resultados y simplificar la implementación de workflows complejos, facilitando además futuras ampliaciones o cambios en la arquitectura
-- **FastAPI:** Facilita una API REST eficiente para exponer los servicios de consulta y gestión documental. Su alta performance, desarrollo asincrónico y soporte a tipado fuerte permiten construir endpoints seguros, rápidos y fáciles de consumir por otras aplicaciones o frontends. Esto agiliza la integración, moderniza el stack y acelera la entrega de nuevas funcionalidades..
-- **Logging:** Loguru para trazabilidad y debugging avanzado. Un logging bien implementado permite detectar problemas rápidamente, rastrear acciones del usuario o del sistema y mantener altos estándares de calidad y seguridad.
+Estos vectores permiten que el sistema identifique la similitud entre preguntas y fragmentos de texto, de modo que, cuando un cliente realiza una consulta, el asistente de IA pueda **recuperar los fragmentos más relevantes** antes de generar la respuesta final.  
 
 ---
 
-## Fase 2: Creación y Mantenimiento de la Base de Conocimiento
-Seleccionar distintos tipos de documentos es esencial para que el sistema de atención al cliente en una empresa de e-commerce cubra todas las necesidades informativas. Los principales ejemplos incluyen:
+### 🔹 Modelo seleccionado: `all-MiniLM-L6-v2`  
 
-### 1. Identificación y Carga de Documentos
-- **PDF:** Políticas de empresa, manuales de usuario y procedimientos internos.
-- **CSV/Excel:** Listados de inventario, reportes de ventas y datos operativos.
-- **JSON:** Preguntas frecuentes (FAQ), configuraciones y respuestas automatizadas.
-- **Markdown/HTML:** Guías de uso, tutoriales y documentación técnica.
+El modelo **`all-MiniLM-L6-v2`** fue seleccionado como la base para el sistema RAG de EcoMarket debido a su excelente **relación entre rendimiento, costo y eficiencia**.  
+Pertenece a la familia **Sentence Transformers** (Microsoft + Hugging Face), optimizado para tareas de búsqueda semántica, clasificación y recuperación de información (*semantic search*).  
 
-- **Carga:** Local (`docs/`) o remota (Azure Blob Storage). Usa los métodos `load_and_index_pdfs` y `load_and_index_pdfs_from_blob`.
+#### ✳️ Características técnicas  
 
-  Esta variedad permite que el sistema responda de manera precisa y completa a las consultas de los clientes, facilitando la gestión y actualización de la base de conocimiento.
+- **Tipo:** Open Source (gratuito).  
+- **Dimensionalidad del embedding:** 384.  
+- **Arquitectura:** Transformer compacto, entrenado en tareas de similitud de oraciones y *paraphrase mining*.  
+- **Tamaño:** Ligero (~80 MB), permite inferencia rápida en CPU o GPU de bajo costo.  
+- **Compatibilidad:** Funciona localmente con librerías como **ChromaDB**, **FAISS** o **LanceDB**.  
 
-### 2. Limpieza y Segmentación (Chunking)
-La segmentación de documentos en "chunks" o fragmentos manejables es esencial para una búsqueda eficiente y precisa. Permite que el sistema procese y recupere información de manera más efectiva.
-- **Estrategias:**
-    - **Por tamaño fijo/tokens (ej. 1000 tokens, solapamiento 200):** Ideal para documentos extensos, mantiene cada fragmento dentro del límite procesable del modelo y evita perder contexto por cortes bruscos.
+#### 💡 Ventajas  
 
-    - **Por párrafos o secciones:** Útil para documentos estructurados (FAQs, políticas), pues conserva la integridad semántica y facilita respuestas directas.
+1. **Costo nulo y libre acceso:** No requiere conexión a APIs de pago.  
+2. **Alta eficiencia:** Velocidad de procesamiento elevada, ideal para entornos locales.  
+3. **Privacidad:** Los documentos empresariales permanecen dentro del entorno de la organización.  
+4. **Facilidad de integración:** Compatible con frameworks de IA abiertos y bases vectoriales locales.  
 
-    - **Chunking recursivo:** Combina ambas estrategias de forma flexible, adaptándose tanto a texto largo como a secciones cortas y asegurando la preservación del sentido.
+#### ⚠️ Limitaciones  
 
-    **Justificación:** En EcoMarket-RAG, el chunking recursivo usando herramientas como RecursiveCharacterTextSplitter (LangChain) resulta óptimo porque balancea la necesidad de contexto y precisión —especialmente útil en políticas o manuales largos— permitiendo una recuperación más relevante y discriminativa ante consultas variadas.
-- **Herramienta:** `RecursiveCharacterTextSplitter` de LangChain.
-
-### 3. Embeddings e Indexación
-La etapa de Embeddings e Indexación es fundamental en la construcción de una base de conocimiento moderna para sistemas RAG, porque permite que los documentos fragmentados sean transformados en vectores numéricos y almacenados eficientemente para búsquedas inteligentes. Desde un concepto global y según las recomendaciones del repositorio: 
-**El proceso de indexación sigue estos pasos:** 
-  - Transformar cada fragmento (chunk) en un vector numérico usando el modelo de embeddings seleccionado (Azure OpenAI, Hugging Face, Sentence Transformers). Este vector captura el significado semántico del fragmento.
-
-  - Almacenar los vectores en una base de datos vectorial (ChromaDB para prototipos; Pinecone/Qdrant en producción), junto con metadatos sobre tipo de documento, nombre y posición del chunk.
-
-Esto permite búsquedas rápidas por similitud, recuperando los fragmentos más relevantes a una consulta del usuario y habilitando respuestas precisas y auditables. En conjunto, estos procesos conforman el núcleo de la inteligencia del sistema RAG: sin embeddings precisos y una indexación bien estructurada, la recuperación y generación de respuestas serían limitadas, poco relevantes y difíciles de auditar o mantener.
-
-- **Embeddings:** Genera vectores con Azure OpenAI, Hugging Face o Sentence Transformers.
-- **Indexación:** Inserta los chunks y sus embeddings en ChromaDB (o Pinecone/Qdrant en producción), incluyendo metadatos (nombre, tipo, chunk).
-
-### 4. Actualización y Versionado
-La actualización y versionado de la base de conocimiento en una solución RAG como EcoMarket-RAG es esencial por varias razones:
-
-  - **Precisión y vigencia:** Permite que la información reflejada en el sistema esté siempre alineada con los documentos más recientes, reduciendo el riesgo de entregar respuestas obsoletas o incorrectas a los usuarios.
-
-  - **Control y auditoría:** El uso de metadatos y el versionado de los documentos facilita el rastreo de cambios, la trazabilidad de las respuestas y la reconstrucción de históricos ante auditorías o consultas legales.
-
-- **Mejora continua:** La actualización periódica del índice con nuevos documentos o versiones revisadas asegura que el sistema evolucione junto con las necesidades del negocio y las expectativas de los usuarios.
-
-Los procesos de actualización y versionado son imprescindibles para mantener la calidad, confiabilidad, seguridad y capacidad de respuesta de la base de conocimiento, asegurando el éxito y la sostenibilidad de soluciones como EcoMarket-RAG en ambientes empresariales dinámicos.
-
-- **Recomendación:** Versiona los documentos y actualiza el índice periódicamente. Usa metadatos para control de versiones y auditoría.
+- Menor precisión semántica en textos legales o complejos.  
+- Soporte parcial en español (aunque aceptable con preprocesamiento adecuado).  
+- Embeddings de menor densidad comparados con modelos de última generación.  
 
 ---
 
-## Fase 3: Integración, Consulta y Pruebas
+### 🔹 Modelo de comparación: `text-embedding-3-large` (OpenAI)  
 
-### 1. Integración API y Frontend
-- **API:** FastAPI expone endpoints para consulta (`/query`), salud (`/health`) y administración.
-- **Frontend:** Opcionalmente, Streamlit o Gradio para prototipos visuales.
+**`text-embedding-3-large`** es un modelo propietario desarrollado por **OpenAI**, considerado uno de los más avanzados del mercado.  
+Es parte de la tercera generación de embeddings optimizados para **RAG, clasificación y búsqueda semántica multilingüe**.  
 
-### 2. Flujo de Consulta RAG
-1. Usuario envía pregunta vía API.
-2. Se genera embedding de la consulta.
-3. Se recuperan los chunks más relevantes del vector store.
-4. Se construye el prompt y se consulta el LLM (OpenAI/Azure/HF).
-5. Se retorna la respuesta con citas y contexto.
+#### ✳️ Características técnicas  
 
-### 3. Pruebas y Validación
-- **Unitarias:** Usa `pytest` y `pytest-asyncio` para validar ingestión, retrieval y generación.
-- **Integración:** Prueba el pipeline completo con documentos de ejemplo.
-- **Observabilidad:** Revisa los logs en `logs/` y usa métricas de recuperación y generación.
+- **Tipo:** Propietario (API en la nube).  
+- **Dimensionalidad:** 3,072.  
+- **Entrenamiento:** En corpus multilingües (más de 40 idiomas, incluyendo español).  
+- **Diseño:** Pensado para integración directa con modelos GPT (GPT-4, GPT-4o, GPT-5).  
+- **Optimización:** Alta precisión semántica, reducción de alucinaciones y excelente manejo de consultas ambiguas.  
 
-### 4. Ventajas y limitaciones
+#### 💡 Bondades principales  
 
-- Ventajas
-  - Respuestas actualizadas y auditables; reducción de alucinaciones con citación.
-  - Control de dominio y cumplimiento normativo si se usa índice privado.
-  - Mejora de precisión con recuperación híbrida.
+1. **Alta precisión contextual:** Capta matices, sinónimos y relaciones semánticas profundas.  
+2. **Multilingüe real:** Entiende y representa correctamente textos en español, inglés y otros idiomas.  
+3. **Integración nativa con GPT:** Permite coherencia entre *retrieval* y *generation*.  
+4. **Escalabilidad:** Ideal para implementaciones cloud con alto tráfico de consultas.  
+5. **Menor riesgo de errores o alucinaciones** en las respuestas generadas.  
 
-- Limitaciones
-  - Dependencia de calidad del corpus y cobertura documental.
-  - Coste y latencia por pasos adicionales (recuperación y re-ranking).
-  - Riesgos de fuga de información si la gobernanza es débil.
+#### ⚠️ Limitaciones  
 
-- Mitigaciones
-  - Curación continua; monitoreo de métricas RAG; caché de consultas frecuentes.
-  - Límite de tokens/contexto y compresión de pasajes.
-  - ABAC y segregación de índices por tenant.
----
-
-## Fase 4: Recomendaciones y Buenas Prácticas
-
-- **Seguridad:** Protege las claves API y restringe el acceso a los endpoints sensibles.
-- **Escalabilidad:** Para grandes volúmenes, considera vector stores cloud y procesamiento batch.
-- **Auditoría:** Versiona los documentos y guarda trazas de consultas y respuestas.
-- **Documentación:** Mantén actualizado el README y los ejemplos en la carpeta `docs/`.
-- **Extensibilidad:** El sistema permite agregar nuevos loaders, modelos y stores según necesidades futuras.
+- **Costo por uso:** Factura por cada mil tokens procesados.  
+- **Dependencia externa:** Requiere conexión a API y cumplimiento de políticas de privacidad.  
+- **Mayor latencia:** Las consultas viajan a servidores externos.  
 
 ---
 
-Para dudas, revisa el README, la carpeta `docs/` o contacta al equipo de EcoMarket.
+### 🔹 Comparación técnica entre ambos modelos  
+
+| **Criterio** | **`all-MiniLM-L6-v2` (Hugging Face)** | **`text-embedding-3-large` (OpenAI)** |
+|--------------|----------------------------------------|---------------------------------------|
+| **Tipo de modelo** | Open Source | Propietario |
+| **Dimensión del vector** | 384 | 3,072 |
+| **Tamaño del modelo** | ~80 MB | ~1.5 GB (en servidores) |
+| **Entrenamiento multilingüe** | Parcial | Extenso (40+ idiomas) |
+| **Precisión semántica** | Buena | Muy alta |
+| **Velocidad de inferencia** | Muy alta (local) | Media (API) |
+| **Costo de uso** | Gratuito | Pago por tokens |
+| **Privacidad** | Total (local) | Parcial (en la nube) |
+| **Integración con RAG** | Manual con frameworks open-source | Nativa con modelos GPT |
+| **Soporte en español** | Aceptable | Excelente |
+| **Escalabilidad** | Limitada al entorno local | Alta, infraestructura cloud |
+| **Uso recomendado** | Fase de desarrollo o educativa | Producción empresarial |
+| **Proveedor** | Hugging Face / Microsoft | OpenAI / Azure OpenAI |
+
+---
+
+### 🔹 Conclusión y decisión de selección  
+
+Para el **prototipo del sistema RAG de EcoMarket**, se seleccionó **`all-MiniLM-L6-v2`** debido a que:  
+
+1. **No genera costos por uso** y permite trabajar sin dependencia de servicios externos.  
+2. **Procesa los documentos PDF institucionales** de manera eficiente en español, con resultados adecuados para búsqueda semántica.  
+3. **Facilita la experimentación y desarrollo local** sin comprometer la privacidad de los datos.  
+
+No obstante, se reconoce que **`text-embedding-3-large`** es una opción **más robusta para entornos productivos**, recomendada para futuras fases del proyecto donde se busque **mayor precisión, escalabilidad y soporte multilingüe avanzado**.  
+
+---
+
+## 2. Base de Datos Vectorial  
+
+### 🧮 Contexto  
+
+Una vez generados los embeddings, estos deben almacenarse en una **base de datos vectorial**, que permita realizar **búsquedas por similitud** de manera eficiente.  
+En el caso del sistema RAG de **EcoMarket**, la base vectorial es el componente encargado de **indexar, recuperar y ordenar** los fragmentos de los documentos relevantes para responder a las consultas de los clientes.  
+
+A continuación se analizan tres opciones principales: **Pinecone**, **ChromaDB** y **Weaviate**.
+
+---
+
+### 🔹 Comparación de bases de datos vectoriales  
+
+| **Criterio** | **Pinecone** | **ChromaDB** | **Weaviate** |
+|---------------|---------------|---------------|---------------|
+| **Tipo de licencia** | SaaS (propietaria, nube) | Open Source | Open Source / Cloud híbrido |
+| **Modo de despliegue** | Cloud (API) | Local o nube | Local y Cloud (modular) |
+| **Costo** | Pago por uso (según volumen de vectores) | Gratuito | Gratuito (local), pago en cloud |
+| **Escalabilidad** | Muy alta (nube administrada) | Limitada (depende del hardware local) | Alta (soporta escalado distribuido) |
+| **Facilidad de uso** | Muy alta (SDK y API simples) | Muy alta (instalación rápida en Python) | Media (mayor configuración inicial) |
+| **Persistencia de datos** | Total (administrada por Pinecone) | Parcial (requiere configuración manual) | Total (almacenamiento persistente integrado) |
+| **Integración con RAG** | Excelente con OpenAI y LangChain | Excelente con LangChain y Hugging Face | Compatible con OpenAI, LangChain y Transformers |
+| **Requerimientos de infraestructura** | Ninguno (100% nube) | Requiere almacenamiento local | Requiere servidor o contenedor |
+| **Privacidad** | Datos en servidores externos | Control local total | Control local o híbrido |
+| **Rendimiento** | Alto y estable (nube optimizada) | Alto en entornos pequeños | Muy alto en entornos distribuidos |
+| **Ideal para** | Producción empresarial en la nube | Fases de desarrollo, pruebas, educación | Soluciones escalables híbridas o empresariales |
+
+---
+
+### 🔹 Decisión para EcoMarket  
+
+Para la **fase actual de desarrollo**, se eligió **ChromaDB** como base vectorial principal por las siguientes razones:
+
+1. **Código abierto y gratuito**, lo que permite su uso en entornos académicos y locales sin costos adicionales.  
+2. **Integración nativa con LangChain y Hugging Face**, facilitando el flujo entre embeddings, búsqueda y generación de respuestas.  
+3. **Simplicidad de implementación**, ideal para prototipos funcionales y pruebas rápidas.  
+4. **Control total de datos**, garantizando privacidad sobre los documentos internos de EcoMarket.  
+
+No obstante, para una **futura implementación en producción**, **Pinecone** y **Weaviate** se consideran opciones más adecuadas debido a su **mayor escalabilidad, monitoreo y administración de carga en tiempo real**.  
+
+---
+
+### 🔹 Conclusión general  
+
+| **Componente** | **Selección actual (Fase de desarrollo)** | **Alternativa recomendada (Fase de producción)** |
+|----------------|--------------------------------------------|------------------------------------------------|
+| **Modelo de Embeddings** | `all-MiniLM-L6-v2` (Hugging Face) | `text-embedding-3-large` (OpenAI) |
+| **Base de Datos Vectorial** | `ChromaDB` (local, open-source) | `Pinecone` o `Weaviate` (cloud escalables) |
+
+---
+
+### ✅ Resumen  
+
+El sistema RAG de **EcoMarket** combina la **eficiencia local del modelo `all-MiniLM-L6-v2`** con la **simplicidad de implementación de ChromaDB**, logrando un prototipo funcional, seguro y económico.  
+Esta arquitectura equilibra **rendimiento, costo y control de datos**, sentando las bases para una futura migración hacia un entorno de producción más robusto con **OpenAI embeddings y bases vectoriales en la nube**.  
+
+# 🧩 Fase 2: Creación de la Base de Conocimiento de Documentos  
+
+El éxito del sistema **RAG (Retrieval-Augmented Generation)** de **EcoMarket** depende directamente de la calidad, organización y coherencia de su base de conocimiento.  
+Esta fase tiene como propósito **preparar, estructurar y optimizar los documentos internos** que servirán como fuente de información confiable para el asistente de atención al cliente.  
+
+---
+
+## 📘 Identificación de Documentos  
+
+Para garantizar que el sistema RAG pueda responder preguntas reales de los clientes con precisión, se seleccionaron **cuatro tipos de documentos clave** que contienen la información más relevante del negocio.  
+Estos documentos son los que alimentarán la base de conocimiento inicial del sistema:  
+
+1. 🧾 **Política de Garantía (PDF):** Define las condiciones bajo las cuales los productos vendidos por EcoMarket pueden ser reparados, reemplazados o reembolsados. Permite responder preguntas sobre tiempos de garantía, cobertura y procedimientos de reclamo.  
+
+2. 📦 **Política de Devolución (PDF):** Establece las condiciones y pasos para devolver productos adquiridos por los clientes. Permite responder consultas sobre plazos, requisitos y causas válidas de devolución.  
+
+3. 🛒 **Política de Compra del Cliente (PDF):** Describe los procesos de compra, métodos de pago y condiciones de servicio. Facilita respuestas sobre medios de pago, facturación y confirmación de pedidos.  
+
+4. 🤝 **Política de Proveedores (PDF):** Regula la relación comercial entre EcoMarket y sus proveedores. Sirve para consultas sobre términos de suministro, pagos o requisitos de calidad.  
+
+📌 **Justificación:**  
+Estos documentos concentran la mayor cantidad de interacciones potenciales con los clientes y procesos internos, convirtiéndose en la base más sólida para entrenar un sistema de atención automatizado, confiable y coherente con las políticas oficiales de la empresa.  
+
+---
+
+## ✂️ Segmentación (Chunking)  
+
+### 🎯 Objetivo de la segmentación  
+
+La segmentación o *chunking* consiste en dividir los documentos extensos en fragmentos manejables que el modelo de embeddings pueda procesar con precisión.  
+Esta fase es clave, ya que el modelo **`all-MiniLM-L6-v2`** —seleccionado en la Fase 1— tiene **limitaciones de tokens**, por lo que los textos deben dividirse sin perder coherencia semántica.  
+
+---
+
+### 🧮 Estrategias evaluadas  
+
+1. **📏 Tamaño fijo (por número de caracteres o tokens):**  
+   Divide el texto cada cierta cantidad de palabras (por ejemplo, 500 tokens).  
+   ✅ Ventajas: control fácil del tamaño y carga uniforme.  
+   ⚠️ Desventajas: puede cortar oraciones o párrafos a la mitad, afectando la coherencia.  
+
+2. **📑 Por párrafos o secciones naturales:**  
+   Divide el documento siguiendo su estructura natural (encabezados, párrafos, títulos).  
+   ✅ Ventajas: mantiene el contexto y sentido completo.  
+   ⚠️ Desventajas: los fragmentos pueden variar mucho en tamaño.  
+
+3. **🔁 Recursiva (por jerarquía textual):**  
+   Utiliza un método jerárquico: primero por secciones, luego por párrafos o frases si son demasiado largos.  
+   ✅ Ventajas: equilibrio entre tamaño y coherencia, ideal para textos normativos.  
+   ⚠️ Desventajas: requiere procesamiento adicional y más lógica de segmentación.  
+
+---
+
+### 🧩 Estrategia seleccionada  
+
+Para **EcoMarket**, se eligió la **estrategia recursiva basada en secciones y párrafos** _(text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200))_, ya que los documentos (políticas, términos y condiciones) tienen una estructura jerárquica clara y coherente.  
+
+📚 **Justificación:**  
+- Preserva la **semántica y el contexto**, manteniendo oraciones completas y subtítulos relevantes.  
+- Evita la **pérdida de información**, ya que no corta apartados críticos.  
+- Optimiza la **recuperación semántica**, permitiendo que cada fragmento responda a una pregunta específica.  
+
+**Ejemplo aplicado (Política de Devolución):**  
+
+- Sección 1: Condiciones Generales  
+  - Párrafo 1: Alcance de la política  
+  - Párrafo 2: Productos excluidos de devolución  
+- Sección 2: Procedimiento de Devolución  
+  - Párrafo 1: Pasos para iniciar una devolución  
+  - Párrafo 2: Tiempos y comprobantes requeridos  
+
+Cada fragmento se almacena con su origen y metadatos (nombre del documento, sección, párrafo, etc.), garantizando **trazabilidad y contexto** durante la búsqueda.  
+
+---
+
+## 🧠 Indexación  
+
+La indexación es el proceso de **transformar los fragmentos** generados durante el chunking en **vectores numéricos (embeddings)**, para luego almacenarlos en la base de datos vectorial donde se realizará la búsqueda por similitud semántica.  
+
+---
+
+### ⚙️ Proceso general de indexación  
+
+1. **📥 Extracción del texto:**  
+   Se utilizan herramientas como *PyPDF* para extraer el contenido de los documentos PDF.  
+
+2. **🧹 Preprocesamiento:**  
+   Limpieza del texto (eliminación de saltos de línea, caracteres especiales).  
+   Normalización a minúsculas y eliminación de stopwords.  
+
+3. **🧩 Segmentación:**  
+   División del texto según la estrategia recursiva seleccionada.  
+   Generación de fragmentos coherentes con identificadores únicos.  
+
+4. **🤖 Generación de embeddings:**  
+   Cada fragmento se convierte en un vector utilizando el modelo **`all-MiniLM-L6-v2`**.  
+   Ejemplo en pseudocódigo:  
+
+   ```python
+   from sentence_transformers import SentenceTransformer
+   model = SentenceTransformer('all-MiniLM-L6-v2')
+   embeddings = model.encode(fragments)
+
+5. **🗄️ Almacenamiento en la base vectorial:**  
+   Los vectores se cargan en **ChromaDB**, junto con el texto original y metadatos como el nombre del documento, la sección y la fecha de carga.  
+
+6. **🔍 Validación del índice:**  
+   Se realizan búsquedas de prueba (por ejemplo: “¿Cuánto tiempo tengo para devolver un producto?”) para comprobar la relevancia de los resultados.  
+
+---
+
+## 🔄 Flujo del proceso  
+
+1. 📚 Documentos PDF de EcoMarket  
+2. 🧾 Extracción de texto  
+3. 🧹 Limpieza y normalización  
+4. ✂️ Segmentación recursiva  
+5. 🤖 Generación de embeddings con `all-MiniLM-L6-v2`  
+6. 🗄️ Carga en **ChromaDB**  
+7. 🔍 Búsqueda semántica por similitud  
+
+---
+
+## 🏁 Conclusión  
+
+La creación de la **base de conocimiento** de EcoMarket constituye el cimiento del sistema RAG, garantizando que el modelo pueda **recuperar información precisa y contextualizada**.  
+La combinación del **modelo `all-MiniLM-L6-v2`**, la **segmentación recursiva** y el **almacenamiento en ChromaDB** proporciona un sistema:  
+
+✅ **Ligero y eficiente** para entornos locales.  
+🚀 **Escalable** hacia soluciones cloud en fases posteriores.  
+🔒 **Confiable y trazable**, al vincular cada fragmento con su documento original.  
+
+Gracias a esta estructura, el asistente de IA de **EcoMarket** puede ofrecer respuestas exactas, transparentes y alineadas con las políticas oficiales de la empresa.  
+✨ En otras palabras, el conocimiento de la organización se convierte en una herramienta viva al servicio del cliente.  
+
+
 
