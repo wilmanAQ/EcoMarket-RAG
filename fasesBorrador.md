@@ -215,7 +215,7 @@ Esta fase es clave, ya que el modelo **`all-MiniLM-L6-v2`** —seleccionado en l
 
 ### 🧩 Estrategia seleccionada  
 
-Para **EcoMarket**, se eligió la **estrategia recursiva basada en secciones y párrafos**, ya que los documentos (políticas, términos y condiciones) tienen una estructura jerárquica clara y coherente.  
+Para **EcoMarket**, se eligió la **estrategia recursiva basada en secciones y párrafos** _(text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200))_, ya que los documentos (políticas, términos y condiciones) tienen una estructura jerárquica clara y coherente.  
 
 📚 **Justificación:**  
 - Preserva la **semántica y el contexto**, manteniendo oraciones completas y subtítulos relevantes.  
