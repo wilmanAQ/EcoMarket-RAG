@@ -1,3 +1,7 @@
+# Fases y Solución del Sistema RAG para EcoMarket
+
+Este documento guía al usuario en la implementación y operación de una solución RAG (Retrieval-Augmented Generation) para EcoMarket, cubriendo desde la selección de componentes hasta la integración y recomendaciones finales.
+
 # 🧩 Fase 1: Selección de Componentes Clave del Sistema RAG  
 
 ## 1. Modelo de Embeddings  
