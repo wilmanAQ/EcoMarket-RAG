@@ -244,7 +244,7 @@ La indexación es el proceso de **transformar los fragmentos** generados durante
 ### ⚙️ Proceso general de indexación  
 
 1. **📥 Extracción del texto:**  
-   Se utilizan herramientas como *PyMuPDF* o *pdfminer* para extraer el contenido de los documentos PDF.  
+   Se utilizan herramientas como *PyPDF* para extraer el contenido de los documentos PDF.  
 
 2. **🧹 Preprocesamiento:**  
    Limpieza del texto (eliminación de saltos de línea, caracteres especiales).  
