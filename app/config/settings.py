@@ -52,6 +52,8 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_file: Optional[str] = "logs/ecomarket_rag.log"
     
+    endpointdataset: str = "https://datasets-server.huggingface.co/rows?dataset=cam2149%2FEcoMarket&config=default&split=train&offset=0&length=100"
+    
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

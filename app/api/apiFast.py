@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """
 EcoMarket RAG Solution - FastAPI API
@@ -6,6 +5,7 @@ EcoMarket RAG Solution - FastAPI API
 
 from fastapi import FastAPI, HTTPException, Depends, Query as FastAPIQuery
 from fastapi.middleware.cors import CORSMiddleware
+import httpx
 from pydantic import BaseModel, Field
 from loguru import logger
 from contextlib import asynccontextmanager
@@ -89,25 +89,62 @@ async def health_check():
 		"generator": generator is not None
 	}
 
+@app.get("/get_orders_dataset")
+async def get_orders_dataset():
+    async with httpx.AsyncClient() as client:
+        settings = get_settings()
+        response = await client.get(settings.endpointdataset)
+        data = response.json()
+        rows = data.get("rows", [])
+        return rows
+    
 @app.get("/get_order", response_model=OrderResponse)
 async def get_order(orden_servicio: str = FastAPIQuery(..., min_length=14, max_length=15)):
 	import re
 	if not orden_servicio or not re.match(r"^[A-Z]{3}-\d{4}-\d{5}$", orden_servicio):
 		raise HTTPException(status_code=400, detail="El parámetro 'orden_servicio' es obligatorio y debe tener el formato correcto (ECO-2509-20001)")
+
+	# Obtener dataset de órdenes
+	async with httpx.AsyncClient() as client:
+		settings = get_settings()
+		response = await client.get(settings.endpointdataset)
+		data = response.json()
+		rows = data.get("rows", [])
+
+	# Buscar la orden por order_id
+	order = next((row for row in rows if row['row']['order_id'] == orden_servicio), None)
+	if not order:
+		return OrderResponse(
+			tracking_number=0,
+			order_id=orden_servicio,
+			customer_name="",
+			city="",
+			product=f"No se encontró la orden de servicio: {orden_servicio}",
+			category="",
+			status="",
+			carrier="",
+			track_url="",
+			notes="",
+			delayed=False,
+			eta="",
+			last_update=""
+		)
+
+	# Retornar objeto OrderResponse con los datos encontrados
 	return OrderResponse(
-		tracking_number=20001,
-		order_id=orden_servicio,
-		customer_name="Camila Torres",
-		city="Pereira",
-		product="Televisor Samsung 55 pulgadas",
-		category="Electrónica",
-		status="Enviado",
-		carrier="Deprisa",
-		track_url=f"https://tracking.ecomarket.example/deprisa/20001",
-		notes="Entregado",
-		delayed=False,
-		eta="2025-09-27",
-		last_update="2025-09-27"
+		tracking_number=order['row'].get('tracking_number', 0),
+		order_id=order['row'].get('order_id', orden_servicio),
+		customer_name=order['row'].get("customer_name", ""),
+		city=order['row'].get("city", ""),
+		product=order['row'].get("product", ""),
+		category=order['row'].get("category", ""),
+		status=order['row'].get("status", ""),
+		carrier=order['row'].get("carrier", ""),
+		track_url=order['row'].get("track_url", ""),
+		notes=order['row'].get("notes", ""),
+		delayed=order['row'].get("delayed", False),
+		eta=order['row'].get("eta", ""),
+		last_update=order['row'].get("last_update", "")
 	)
 
 @app.post("/query", response_model=QueryResponse)
