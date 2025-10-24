@@ -1,3 +1,5 @@
+from fastapi import Body
+
 #!/usr/bin/env python3
 """
 EcoMarket RAG Solution - FastAPI API
@@ -9,6 +11,7 @@ import httpx
 from pydantic import BaseModel, Field
 from loguru import logger
 from contextlib import asynccontextmanager
+import os
 
 from app.rag.embeddings import EmbeddingService
 from app.rag.retriever import DocumentRetriever
@@ -46,6 +49,15 @@ class OrderResponse(BaseModel):
 	eta: str
 	last_update: str
 
+# Modelo para registrar devolución
+class RegistrarDevolucionRequest(BaseModel):
+	codigo_devolucion: str
+
+# Respuesta para registro de devolución
+class RegistrarDevolucionResponse(BaseModel):
+	success: bool
+	message: str
+ 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 	global embedding_service, retriever, generator
@@ -105,9 +117,9 @@ async def get_order(orden_servicio: str = FastAPIQuery(..., min_length=14, max_l
 		raise HTTPException(status_code=400, detail="El parámetro 'orden_servicio' es obligatorio y debe tener el formato correcto (ECO-2509-20001)")
 
 	# Obtener dataset de órdenes
-	async with httpx.AsyncClient() as client:
+	with httpx.Client() as client:
 		settings = get_settings()
-		response = await client.get(settings.endpointdataset)
+		response = client.get(settings.endpointdataset)
 		data = response.json()
 		rows = data.get("rows", [])
 
@@ -156,33 +168,40 @@ async def query_rag(request: QueryRequest):
 		match = re.search(r"[A-Z]{3}-\d{4}-\d{5}", request.query)
 		orden_servicio = match.group(0) if match else None
 		logger.info(f"Orden de servicio detectada: {orden_servicio}")
+     
 		if orden_servicio:
-			info_order = await get_order(orden_servicio)
-			new_query = f"{request.query}\nDetalles de la orden de servicio:" \
-						f"ID: {info_order.order_id} " \
-						f"Cliente: {info_order.customer_name} " \
-						f"Ciudad: {info_order.city} " \
-						f"Producto: {info_order.category} {info_order.product} " \
-						f"Tipo de producto: {info_order.category} " \
-						f"Estado: {info_order.status} " \
-						f"Transportista: {info_order.carrier} " \
-						f"URL de seguimiento: {info_order.track_url} " \
-						f"Notas: {info_order.notes} " \
-						f"Retraso: {info_order.delayed} " \
-						f"ETA: {info_order.eta} " \
-						f"Última actualización: {info_order.last_update} "
+			if buscar_devolucion_por_orden(orden_servicio):
+				new_query = f"{request.query}\nNota: Ya se ha registrado una devolución para la orden de servicio {orden_servicio}."
+			else:
+				info_order = await get_order(orden_servicio)
+				new_query = f"{request.query}\nDetalles de la orden de servicio:" \
+							f"ID: {info_order.order_id} " \
+							f"Cliente: {info_order.customer_name} " \
+							f"Ciudad: {info_order.city} " \
+							f"Producto: {info_order.category} {info_order.product} " \
+							f"Tipo de producto: {info_order.category} " \
+							f"Estado: {info_order.status} " \
+							f"Transportista: {info_order.carrier} " \
+							f"URL de seguimiento: {info_order.track_url} " \
+							f"Notas: {info_order.notes} " \
+							f"Retraso: {info_order.delayed} " \
+							f"ETA: {info_order.eta} " \
+							f"Última actualización: {info_order.last_update} "
 		else:
 			new_query = request.query
+   
 		logger.info(f"Información de la orden: {new_query}")
 		documents = await retriever.retrieve(
 			new_query,
 			top_k=request.top_k
 		)
+  
 		response = await generator.generate(
 			query=new_query,
 			documents=documents,
 			temperature=request.temperature
 		)
+    		  
 		return QueryResponse(
 			answer=response["answer"],
 			sources=response["sources"],
@@ -191,3 +210,114 @@ async def query_rag(request: QueryRequest):
 	except Exception as e:
 		logger.error(f"Error processing query: {str(e)}")
 		raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/registrar_orden_devolucion", response_model=RegistrarDevolucionResponse)
+async def registrar_orden_devolucion(request: RegistrarDevolucionRequest = Body(...)):
+    import re
+    
+    codigo = request.codigo_devolucion
+    
+    match = re.search(r"[A-Z]{3}-\d{4}-\d{5}-\d{6}", codigo)
+    orden_devolucion = match.group(0) if match else None
+    if not orden_devolucion:
+        return False
+    
+    match_orden_servicio = re.search(r"[A-Z]{3}-\d{4}-\d{5}", orden_devolucion)
+    orden_servicio = match_orden_servicio.group(0) if match_orden_servicio else None
+    if not orden_servicio:
+        return False
+
+    registrar_devolucion_en_json(orden_devolucion)
+    return RegistrarDevolucionResponse(success=True, message=f"Devolución registrada correctamente: {orden_devolucion}")
+
+# Función para registrar devolución en archivos JSON
+def registrar_devolucion_en_json(codigo_devolucion: str):
+		import re
+		import json
+		import httpx
+		import os
+		from pathlib import Path
+		from glob import glob
+		from app.config.settings import get_settings
+
+		codigo = codigo_devolucion
+  
+		match = re.search(r"[A-Z]{3}-\d{4}-\d{5}-\d{6}", codigo)
+		orden_servicio = match.group(0) if match else None
+		if not orden_servicio:
+			return False
+
+		# Obtener dataset de órdenes
+		with httpx.Client() as client:
+			settings = get_settings()
+			response = client.get(settings.endpointdataset)
+			data = response.json()
+			rows = data.get("rows", [])
+
+		match_orden_servicio = re.search(r"[A-Z]{3}-\d{4}-\d{5}", orden_servicio)
+		orden_servicio = match_orden_servicio.group(0) if match_orden_servicio else None
+		if not orden_servicio:
+			return False
+		# Buscar la orden por order_id
+		order = next((row for row in rows if row['row']['order_id'] == orden_servicio), None)
+
+		if order:
+			order_response = OrderResponse(
+				tracking_number=order['row'].get('tracking_number', 0),
+				order_id=order['row'].get('order_id', orden_servicio),
+				customer_name=order['row'].get("customer_name", ""),
+				city=order['row'].get("city", ""),
+				product=order['row'].get("product", ""),
+				category=order['row'].get("category", ""),
+				status=order['row'].get("status", ""),
+				carrier=order['row'].get("carrier", ""),
+				track_url=order['row'].get("track_url", ""),
+				notes=order['row'].get("notes", "") + f" Devolución registrada con código: {codigo}",
+				delayed=order['row'].get("delayed", False),
+				eta=order['row'].get("eta", ""),
+				last_update=order['row'].get("last_update", "")
+			)
+
+			docs_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "docs")
+			json_files = glob(os.path.join(docs_folder, "*.json"))
+			try:
+				for json_path in json_files:
+					try:
+						with open(json_path, "r", encoding="utf-8") as f:
+							content = f.read().strip()
+							if not content:
+								json_data = []
+							else:
+								json_data = json.loads(content)
+						json_data.append(order_response.dict())
+						with open(json_path, "w", encoding="utf-8") as f:
+							json.dump(json_data, f, ensure_ascii=False, indent=2)
+					except Exception:
+						return False
+			except Exception:
+				logger.error(f"Error al registrar la devolución en los archivos JSON.")
+				return False
+			return True
+		else:
+			return False
+			
+# Buscar devolución por orden_servicio en devoluciones_registradas.json
+def buscar_devolucion_por_orden(orden_servicio: str):
+	import json
+	from pathlib import Path
+	docs_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "docs")
+	json_path = os.path.join(docs_folder, "devoluciones_registradas.json")
+	if not os.path.exists(json_path):
+		return None
+	with open(json_path, "r", encoding="utf-8") as f:
+		content = f.read().strip()
+		if not content:
+			return None
+		try:
+			data = json.loads(content)
+		except Exception:
+			return None
+	for registro in data:
+		if registro.get("order_id") == orden_servicio:
+			return True
+	return False

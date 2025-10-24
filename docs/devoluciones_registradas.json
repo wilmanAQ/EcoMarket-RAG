@@ -1,0 +1,17 @@
+[
+  {
+    "tracking_number": 20028,
+    "order_id": "ECO-2509-20028",
+    "customer_name": "Camila Torres",
+    "city": "Medellín",
+    "product": "Integral Ítem 455",
+    "category": "Hogar",
+    "status": "Entregado",
+    "carrier": "Servientrega",
+    "track_url": "https://tracking.ecomarket.example/servientrega/20028",
+    "notes": "Entrega realizada. Devolución registrada con código: ECO-2509-20028-374562",
+    "delayed": false,
+    "eta": "2025-10-04",
+    "last_update": "2025-09-25"
+  }
+]

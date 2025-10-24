@@ -12,7 +12,7 @@
             padding: 0;
         }
         .container {
-            max-width: 540px;
+            max-width: 80%;
             margin: 40px auto;
             background: #fff;
             border-radius: 16px;
@@ -161,6 +161,18 @@
                 const data = await res.json();
                 history.push({ role: 'agent', text: data.answer || 'Sin respuesta.' });
                 renderHistory();
+                try {
+                    const resDev = await fetch('http://127.0.0.1:8000/registrar_orden_devolucion', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ codigo_devolucion: data.answer || '' })
+                    });
+                } catch (err) {
+                    history.push({ role: 'agent', text: 'Error de conexión.' });
+                    renderHistory();
+                }
             } catch (err) {
                 history.push({ role: 'agent', text: 'Error de conexión.' });
                 renderHistory();
