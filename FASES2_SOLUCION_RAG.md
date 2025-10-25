@@ -11,9 +11,9 @@ Las herramientas representan las funciones que permiten al agente ejecutar accio
 
 | **Herramienta** | **Descripción** | **Entrada (Input)** | **Salida (Output)** | **Propósito principal** |
 |------------------|-----------------|----------------------|----------------------|---------------------------|
-| `obtener_orden` | Consulta la información completa de una orden específica. | ID de orden o correo del cliente. | Datos de la orden (productos, fechas, estado). | Permite validar si la orden existe y si puede ser procesada. |
+| `obtener_orden` | Consulta la información completa de una orden específica. | ID de orden. | Datos de la orden (productos, fechas, estado). | Permite validar si la orden existe y si puede ser procesada. |
 | `get_orders_dataset` | Obtiene el dataset completo de órdenes registradas en el sistema. | Ninguna. | Conjunto de órdenes con información general (IDs, fechas, estado, productos). | Facilita el acceso masivo a los datos históricos de órdenes. |
-| `get_order` | Recupera la información detallada de una orden específica. | ID de la orden o correo del cliente. | Información detallada de la orden (productos, valor total, estado, cliente). | Permite al agente consultar detalles de una orden puntual. |
+| `get_order` | Recupera la información detallada de una orden específica. | ID de la orden. | Información detallada de la orden (productos, valor total, estado, cliente). | Permite al agente consultar detalles de una orden puntual. |
 | `query` | Realiza consultas al sistema RAG (Retrieval-Augmented Generation) para obtener información contextual. | Pregunta o instrucción del usuario. | Respuesta generada a partir de la base de conocimiento. | Permite recuperar información semántica y contextual desde la base de conocimiento. |
 | `register_return_order` | Registra una nueva orden de devolución en el sistema. | ID de la orden y motivo de devolución. | Confirmación de registro y número de caso. | Automatiza el proceso de devoluciones, generando trazabilidad en el sistema. |
 
