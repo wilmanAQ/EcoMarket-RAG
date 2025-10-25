@@ -24,12 +24,39 @@ EcoMarket-RAG es una solución de Recuperación Aumentada por Generación (RAG) 
 3. **Observabilidad**: Logs, métricas y trazas de la cadena.
 
 **Diagrama (alto nivel):**
+
 ```
-[Usuario/API] → FastAPI → LangChain (RAG Pipeline)
-→ Retriever (ChromaDB) ← Embeddings (OpenAI/HuggingFace)
-→ Contexto (de documentos locales o Azure Blob)
-→ LLM (OpenAI/Azure/HF) → Respuesta con citas
+┌─────────────┐         ┌──────────────┐         ┌──────────────┐
+│  SPA Front  │  <--->  │   FastAPI    │  <--->  │  Devoluciones│
+│  (Chat UI)  │  REST   │   Backend    │  lógica │  y JSON Docs │
+└─────────────┘         └─────┬────────┘         └──────┬───────┘
+           │                          │
+           │                          │
+           ▼                          ▼
+         ┌──────────────┐           ┌──────────────┐
+         │   LangChain  │           │ Azure Blob   │
+         │  (RAG Core)  │           │ Storage      │
+         └──────┬───────┘           └──────────────┘
+           │
+           ▼
+         ┌──────────────┐
+         │  ChromaDB    │
+         │ (Vector DB)  │
+         └──────┬───────┘
+           │
+           ▼
+         ┌──────────────┐
+         │  LLM/Embeds  │
+         │(OpenAI/HF/Azure)
+         └──────────────┘
 ```
+
+**Flujo resumido:**
+1. Usuario interactúa vía SPA (chat) o API REST.
+2. FastAPI recibe la consulta, valida, gestiona devoluciones y enruta a RAG.
+3. LangChain orquesta: embeddings, retrieval (ChromaDB), contexto y prompt.
+4. LLM genera respuesta citando fuentes.
+5. Respuesta y estado de devoluciones se retornan al usuario.
 
 ## Instalación y Ejecución
 
