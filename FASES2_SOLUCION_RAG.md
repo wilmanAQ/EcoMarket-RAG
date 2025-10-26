@@ -64,30 +64,101 @@ El proceso automatizado que seguirá el agente se estructura en **fases secuenci
 6. **Notificación y cierre:**
    El agente usa `notificar_cliente` para enviar el comprobante y la etiqueta, actualiza el estado de la orden y registra la auditoría final del caso.
 
+7. Diagrama de flujo
+
+
+-------
+
+# Fase 3 · Análisis Crítico y Propuestas de Mejora  
+**Caso:** Agente de IA para devoluciones de productos y generación de etiquetas (RAG + LLM + FastAPI)
+
 ---
 
-###  Resumen del flujo lógico
-###  Resumen del flujo lógico
+## 🔐 Análisis de Seguridad y Ética
 
-```
-%%{init: {"theme": "neutral", "flowchart": {"curve": "linear", "htmlLabels": false}}}%%
-flowchart TD
-    A["Cliente solicita devolución"]
-    B["Validar orden y obtener datos"]
-    C["Consultar políticas de devolución (RAG)"]
-    D["Verificar elegibilidad del producto"]
-    E["Generar etiqueta"]
-    F["Notificar cliente"]
-    G["Cerrar caso"]
-    H["Explicar motivo y finalizar"]
+Cuando un agente de IA con arquitectura RAG (Retrieval-Augmented Generation) y modelo LLM recibe la capacidad de **tomar acciones autónomas**, como verificar elegibilidad o generar etiquetas de devolución, surgen riesgos éticos y técnicos que deben ser abordados desde el diseño.
 
-    A --> B
-    B --> C
-    C --> D
-    D -->|Elegible| E
-    E --> F
-    F --> G
-    D -->|No elegible| H
+1. **Riesgo de ejecución indebida.**  
+   El LLM podría interpretar mal las políticas o generar una acción no permitida (como emitir reembolsos en lugar de solo etiquetas).  
+   **Solución:** implementar validaciones con *schemas* Pydantic y una política de autorización previa a la ejecución (Rule-Based Access Control).
+
+2. **Fuga de información (PII).**  
+   El contexto recuperado por el RAG podría incluir información sensible de la devulucoón.  
+   **Solución:** anonimizar datos antes de ser procesados por el LLM y aplicar enmascaramiento en los logs de FastAPI.
+
+3. **Alucinación de políticas o decisiones.**  
+   El modelo podría citar reglas inexistentes o modificar las condiciones reales de devolución.  
+   **Solución:** utilizar un verificador de contexto (“retriever-verifier”) que contraste las fuentes RAG con las políticas oficiales indexadas.
+
+4. **Transparencia y responsabilidad.**  
+   Es fundamental explicar al cliente por qué su devolución fue aceptada o rechazada, con base en fuentes verificables.  
+   **Solución:** generar trazas explicativas y conservar registros auditables (WORM) de todas las decisiones tomadas por el agente.
+
+5. **Equidad y ética operacional.**  
+   La IA no debe favorecer ni discriminar a clientes por idioma, zona o historial.  
+   **Solución:** aplicar métricas de equidad y revisiones periódicas de sesgo en los datos y en las respuestas del modelo.
+
+---
+
+## 📊 Monitoreo y Observabilidad
+
+La operación confiable de un agente autónomo requiere **observabilidad integral**, desde FastAPI hasta el modelo LLM.
+
+1. **Registro estructurado de acciones.**  
+   Cada paso —consulta, verificación, generación de etiqueta— debe registrarse con `trace_id` y `span_id`.  
+   **Solución:** implementar OpenTelemetry y almacenar trazas estructuradas (JSON) con métricas como latencia, éxito y tokens usados.
+
+2. **Panel de control (Grafana / Prometheus).**  
+   Permite observar métricas de desempeño y alertar desviaciones.  
+   - `label_issue_success_rate` → porcentaje de etiquetas generadas con éxito.  
+   - `policy_block_rate` → acciones bloqueadas por reglas.  
+   - `llm_latency_ms` → tiempo de respuesta del modelo.  
+   **Solución:** integrar un tablero con indicadores de calidad y seguridad.
+
+3. **Sistema de alertas automáticas.**  
+   Si el agente genera demasiados errores o detecta PII sin enmascarar, debe suspender la ejecución.  
+   **Solución:** configurar alertas en **Slack** o correo cuando se supere un umbral de riesgo definido (por ejemplo, 5% de errores críticos).
+
+4. **Evaluación continua (Shadow Mode).**  
+   Permite validar nuevas versiones del agente sin ejecutar acciones reales.  
+   **Solución:** habilitar modo sombra en FastAPI, comparando decisiones propuestas con las históricas de analistas humanos.
+
+---
+
+## 🚀 Propuestas de Mejora
+
+El agente actual puede evolucionar hacia un ecosistema de **agentes colaborativos**, ampliando sus capacidades dentro del proceso de atención al cliente.
+
+1. **Agente de reemplazo automático.**  
+   Si el producto es elegible, genera una nueva orden de envío en el sistema ERP y coordina el despacho al recibir la etiqueta escaneada.  
+   *Beneficio:* mejora la experiencia del cliente y reduce tiempos de reposición.
+
+2. **Agente CRM inteligente.**  
+   Actualiza el historial del cliente en tiempo real: motivos de devolución, nivel de satisfacción y frecuencia de reembolsos.  
+   *Beneficio:* aporta datos valiosos para segmentación y retención.
+
+3. **Agente logístico.**  
+   Agenda automáticamente la recolección del producto con el operador de transporte, según el SLA y la zona geográfica.  
+   *Beneficio:* reduce intervención humana y optimiza rutas de entrega.
+
+4. **Agente auditor.**  
+   Verifica que cada decisión del agente principal esté sustentada en políticas vigentes y correctamente citadas.  
+   *Beneficio:* refuerza trazabilidad y cumplimiento normativo.
+
+5. **Agente de fraude y riesgo.**  
+   Evalúa patrones inusuales en las devoluciones, como repetición de solicitudes o cambios sospechosos de dirección.  
+   *Beneficio:* reduce pérdidas económicas y abuso del sistema.
+
+---
+
+## ✅ Conclusión
+
+El análisis crítico revela que un agente RAG con FastAPI puede operar con autonomía y seguridad siempre que se apliquen controles éticos, técnicos y de observabilidad.  
+Las mejoras propuestas fortalecen su fiabilidad y escalabilidad, permitiendo que EcoMarket evolucione hacia un sistema de **atención inteligente**, trazable y centrado en la confianza del cliente.
+
+
+
+
 
 ---
 
