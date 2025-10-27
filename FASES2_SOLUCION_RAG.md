@@ -63,8 +63,9 @@ El proceso automatizado que seguirá el agente se estructura en **fases secuenci
 
 6. **Notificación y cierre:**
    El agente usa `notificar_cliente` para enviar el comprobante y la etiqueta, actualiza el estado de la orden y registra la auditoría final del caso.
+   
+7. [Planificación del Flujo del Trabajo del Agente ](https://drive.google.com/file/d/1KQxbUxqEhoYMhs3Xw-ShIKC2cHn0p8P-/view?usp=sharing)
 
-7. Diagrama de flujo
 
 
 -------
