@@ -64,9 +64,65 @@ El proceso automatizado que seguirá el agente se estructura en **fases secuenci
 6. **Notificación y cierre:**
    El agente usa `notificar_cliente` para enviar el comprobante y la etiqueta, actualiza el estado de la orden y registra la auditoría final del caso.
    
-7. [Planificación del Flujo del Trabajo del Agente ](https://drive.google.com/file/d/1KQxbUxqEhoYMhs3Xw-ShIKC2cHn0p8P-/view?usp=sharing)
+7. [Diseño, Planificación del Flujo del Trabajo del Agente ](https://drive.google.com/file/d/1KQxbUxqEhoYMhs3Xw-ShIKC2cHn0p8P-/view?usp=sharing)
 
 
+-------
+
+Claro 👍 Aquí tienes la versión mejorada en **formato Markdown**, lista para usar en tu informe o README técnico:
+
+---
+
+# 🧩 Fase 2: Implementación y Conexión de Componentes
+
+En esta fase se continuó con la implementación del sistema **RAG existente**, logrando que el modelo seleccionado —**LangChain**— automatizara el proceso de devolución mediante la **política generada** en fases anteriores.
+
+El modelo ahora es capaz de **gestionar de forma autónoma** la generación de **etiquetas numéricas**, utilizadas para **identificar los productos elegibles** dentro del flujo de devolución. Esta nueva capacidad le otorga al agente una **autonomía operativa**, permitiéndole responder eficazmente a las **consultas y solicitudes de los usuarios** de la empresa **EcoMarket**, integrando tanto la lógica del negocio como las políticas de devolución vigentes.
+
+---
+
+## ⚙️ Integración Técnica
+
+Esta fase corresponde al proceso de **codificación e integración de componentes**.
+Los estudiantes deben conectar el trabajo realizado en el *Taller 2* con la nueva **funcionalidad del agente inteligente**, siguiendo los lineamientos definidos:
+
+### 🔧 Extensión del Código Base
+
+A partir del código desarrollado en el taller anterior, se añadió la lógica del agente, definiendo las **herramientas (tools)** como funciones y configurando su **inicialización dentro del entorno FastAPI**.
+
+### 💬 Manejo de Respuestas
+
+El agente no solo ejecuta las acciones, sino que también **formatea las respuestas** de forma clara y empática, informando al usuario sobre el resultado del proceso (por ejemplo, si el producto fue **elegible para devolución** y si se generó su **etiqueta de envío**).
+Además, maneja **mensajes de error** y **validaciones** del flujo de manera controlada y coherente.
+
+### 🧠 Evaluación del Comportamiento
+
+Se realizaron pruebas con **diversos prompts y escenarios** para comprobar la capacidad del agente de discernir:
+
+* Cuándo debe **utilizar las herramientas** (`retrieval`, `query`, `FastAPI`, `register_return_order`).
+* Cuándo debe **responder directamente** utilizando el **contexto recuperado de ChromaDB** y procesado por el **LLM (OpenAI/Azure)**.
+
+---
+
+## 🧩 Conexión de Componentes
+
+Esta fase consolidó la **interconexión entre los módulos principales**:
+
+| Componente                            | Descripción                                                                        |
+| ------------------------------------- | ---------------------------------------------------------------------------------- |
+| **SAP Front (SPA)**                   | Interfaz donde el usuario realiza la solicitud de devolución.                      |
+| **API REST / FastAPI Backend**        | Recibe la solicitud, valida datos, ejecuta herramientas y coordina el flujo.       |
+| **LangChain (Orquestación)**          | Controla el flujo de decisiones del agente y la interacción con las herramientas.  |
+| **ChromaDB (Retrieval)**              | Base vectorial que almacena las políticas de devolución y contexto relevante.      |
+| **LLM / Embeddings (OpenAI - Azure)** | Motor de razonamiento que interpreta la consulta y genera la respuesta contextual. |
+
+---
+
+> ✅ Con esta arquitectura integrada, el sistema RAG logra automatizar el proceso de devolución, generar etiquetas únicas y ofrecer respuestas dinámicas y contextualizadas a los usuarios de **EcoMarket**, garantizando eficiencia, trazabilidad y una experiencia de atención optimizada.
+
+---
+
+¿Deseas que te agregue a este mismo bloque el **diagrama visual en formato Markdown (Mermaid)** para acompañar esta explicación? Quedaría ideal para documentación técnica o presentación en GitHub.
 
 -------
 
