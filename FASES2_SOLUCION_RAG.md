@@ -69,9 +69,6 @@ El proceso automatizado que seguirá el agente se estructura en **fases secuenci
 
 -------
 
-Claro 👍 Aquí tienes la versión mejorada en **formato Markdown**, lista para usar en tu informe o README técnico:
-
----
 
 # 🧩 Fase 2: Implementación y Conexión de Componentes
 
@@ -79,12 +76,12 @@ En esta fase se continuó con la implementación del sistema **RAG existente**, 
 
 El modelo ahora es capaz de **gestionar de forma autónoma** la generación de **etiquetas numéricas**, utilizadas para **identificar los productos elegibles** dentro del flujo de devolución. Esta nueva capacidad le otorga al agente una **autonomía operativa**, permitiéndole responder eficazmente a las **consultas y solicitudes de los usuarios** de la empresa **EcoMarket**, integrando tanto la lógica del negocio como las políticas de devolución vigentes.
 
----
+-----
 
 ## ⚙️ Integración Técnica
 
 Esta fase corresponde al proceso de **codificación e integración de componentes**.
-Los estudiantes deben conectar el trabajo realizado en el *Taller 2* con la nueva **funcionalidad del agente inteligente**, siguiendo los lineamientos definidos:
+Se realizó la integración del trabajo realizado en el *Taller 2* con la nueva **funcionalidad del agente inteligente**, siguiendo los lineamientos definidos:
 
 ### 🔧 Extensión del Código Base
 
@@ -120,9 +117,6 @@ Esta fase consolidó la **interconexión entre los módulos principales**:
 
 > ✅ Con esta arquitectura integrada, el sistema RAG logra automatizar el proceso de devolución, generar etiquetas únicas y ofrecer respuestas dinámicas y contextualizadas a los usuarios de **EcoMarket**, garantizando eficiencia, trazabilidad y una experiencia de atención optimizada.
 
----
-
-¿Deseas que te agregue a este mismo bloque el **diagrama visual en formato Markdown (Mermaid)** para acompañar esta explicación? Quedaría ideal para documentación técnica o presentación en GitHub.
 
 -------
 
