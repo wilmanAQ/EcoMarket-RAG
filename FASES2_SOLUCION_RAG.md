@@ -207,6 +207,34 @@ El agente actual puede evolucionar hacia un ecosistema de **agentes colaborativo
 El análisis crítico revela que un agente RAG con FastAPI puede operar con autonomía y seguridad siempre que se apliquen controles éticos, técnicos y de observabilidad.  
 Las mejoras propuestas fortalecen su fiabilidad y escalabilidad, permitiendo que EcoMarket evolucione hacia un sistema de **atención inteligente**, trazable y centrado en la confianza del cliente.
 
+Aquí tienes la justificación de forma breve, clara y profesional, con dos párrafos y una tabla comparativa, todo en formato **Markdown**:
+
+---
+
+## 🧩 Fase 4: Despliegue de la Aplicación
+
+Durante la fase de despliegue se optó por utilizar **Gradio** como herramienta principal para la construcción de la interfaz del agente RAG de devoluciones. Esta elección se fundamenta en su **simplicidad, rapidez de implementación y compatibilidad directa con modelos conversacionales**, lo que permite construir interfaces funcionales en pocos minutos sin requerir una estructura compleja. Gradio ofrece componentes nativos para chat, carga de archivos y botones interactivos, lo que facilita la comunicación entre el usuario y el backend basado en FastAPI, optimizando el flujo entre solicitud, verificación y generación de etiquetas de devolución.
+
+Por otro lado, **Streamlit**, aunque es una herramienta potente para el desarrollo de dashboards interactivos y aplicaciones de análisis de datos, no resulta tan eficiente para un escenario centrado en la **interacción conversacional y las respuestas en tiempo real**. Su estructura requiere más configuración de estados, manejo de sesiones y desarrollo de interfaz, lo que incrementa el tiempo y la complejidad sin aportar beneficios sustanciales en un caso donde la prioridad es la respuesta rápida y clara del agente.
+
+---
+
+### ⚖️ Comparativa entre Gradio y Streamlit
+
+| Criterio                        | **Gradio**                                           | **Streamlit**                                         |
+| ------------------------------- | ---------------------------------------------------- | ----------------------------------------------------- |
+| **Enfoque principal**           | Demos de IA, chatbots, inferencia en tiempo real     | Dashboards, visualizaciones, aplicaciones multipágina |
+| **Facilidad de uso**            | Muy alta: interfaz lista en minutos                  | Alta, pero requiere más estructura y código           |
+| **Componentes de chat**         | Nativos y optimizados (`ChatInterface`, `Textbox`)   | Requiere personalización manual con `st.chat_*`       |
+| **Integración con FastAPI**     | Simple con `requests` o endpoints directos           | Similar, pero con más configuración de estado         |
+| **Despliegue**                  | Rápido (Hugging Face Spaces, Gradio Cloud, Docker)   | Más orientado a Streamlit Cloud o servidores propios  |
+| **Adecuado para este proyecto** | ✅ Ideal para el flujo conversacional de devoluciones | ❌ Excesivo para un caso no analítico                  |
+
+---
+
+> ✅ En conclusión, **Gradio** fue la herramienta ideal para este proyecto, al equilibrar **rapidez, funcionalidad y facilidad de integración** con el backend del agente RAG, logrando una interfaz fluida y centrada en la experiencia del usuario.
+
+
 
 
 
