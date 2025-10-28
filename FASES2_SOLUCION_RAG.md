@@ -59,7 +59,7 @@ El proceso automatizado que seguirá el agente se estructura en **fases secuenci
    Se llama a `register_return_order` para crear la guía de envío y registrar el proceso.
 
 6. **Notificación y cierre:**
-   El agente usa `notificar_cliente` para enviar el comprobante y la etiqueta, actualiza el estado de la orden y registra la auditoría final del caso.
+   El agente comunica al usuario el resultado del proceso de devolución y finaliza la conversación si no se recibe una nueva solicitud o requerimiento relacionado con otra devolución.
    
 7. [Diseño, Planificación del Flujo del Trabajo del Agente ](https://drive.google.com/file/d/1KQxbUxqEhoYMhs3Xw-ShIKC2cHn0p8P-/view?usp=sharing)
 
