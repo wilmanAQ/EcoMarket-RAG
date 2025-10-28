@@ -12,7 +12,7 @@ Las herramientas representan las funciones que permiten al agente ejecutar accio
 | **Herramienta** | **Descripción** | **Entrada (Input)** | **Salida (Output)** | **Propósito principal** |
 |------------------|-----------------|----------------------|----------------------|---------------------------|
 | `get_order_tool` | Recupera la información detallada de una orden específica. | ID de la orden. | Información detallada de la orden (productos, valor total, estado, cliente). | Permite al agente consultar detalles de una orden puntual. |
-| `register_return_order` | Registra una nueva orden de devolución en el sistema. | ID de la orden y motivo de devolución. | Confirmación de registro y número de caso. | Automatiza el proceso de devoluciones, generando trazabilidad en el sistema. |
+| `register_return_order` | Registra una nueva orden de devolución en el sistema. | ID de la orden y motivo de devolución. | Confirmación de registro y número de caso. | Automatiza el proceso de devoluciones, generando trazabilidad en el sistema. | Generación de etiqueta |
 | `verify_eligibility_order_tool` | Verifica si un producto cumple con las políticas de devolución de EcoMarket. | ID de la orden. | Estado de elegibilidad (aprobado o rechazado) y motivo. | Evalúa si la orden cumple las condiciones para proceder con la devolución. |
 
 
@@ -23,17 +23,16 @@ Todas siguen un formato estructurado de **entrada/salida** y retornan mensajes *
 
 ## 2. Selección del Marco de Agentes
 
-Se selecciona **LangChain**, apoyado en **LangGraph** para la orquestación del flujo del agente.
-
+Se selección **LangChain**.
 ### Justificación
 
 * **Integración natural con RAG:** LangChain permite conectar el agente con el sistema RAG existente, reutilizando los retrievers y document loaders sin modificar la estructura base.
 * **Ejecución segura de herramientas:** Su sistema de *tool calling* y validación de esquemas JSON evita alucinaciones y garantiza que el agente solo actúe mediante funciones autorizadas.
-* **Flujo de trabajo controlado:** LangGraph permite representar el proceso de devolución como un grafo de estados (inicio, verificación, acción, cierre), ofreciendo transparencia, trazabilidad y control sobre las decisiones.
+* **Flujo de trabajo controlado:** Se controla desde el prompt del Agente.
 * **Escalabilidad y modularidad:** La arquitectura basada en *chains* y *agents* facilita agregar nuevas herramientas en fases futuras (p. ej., `gestionar_reembolsos` o `consultar_inventario`).
 * **Compatibilidad con auditoría y observabilidad:** Las integraciones con **LangSmith** permiten rastrear cada paso del agente para fines de depuración o cumplimiento normativo.
 
-> En comparación, **LlamaIndex** se orienta más a la recuperación y organización avanzada de información (*RAG*), mientras que **LangChain/LangGraph** aportan mejor control sobre la toma de decisiones y la ejecución de acciones autónomas, esenciales para este caso de uso.
+> En comparación, **LlamaIndex** se orienta más a la recuperación y organización avanzada de información (*RAG*), mientras que **LangChain** aportan mejor control sobre la toma de decisiones y la ejecución de acciones autónomas, esenciales para este caso de uso.
 
 ---
 
@@ -45,19 +44,19 @@ El proceso automatizado que seguirá el agente se estructura en **fases secuenci
    El agente analiza la intención del usuario (solicitud de devolución) y verifica que la conversación corresponda al flujo de devoluciones.
 
 2. **Obtención de datos:**
-   Si el cliente no proporciona los datos necesarios (número de orden, producto, motivo), el agente solicita la información y llama a `obtener_orden`.
+   Si el cliente no proporciona los datos necesarios (número de orden, producto, motivo), el agente solicita la información y llama a `get_obtener_orden`.
 
 3. **Consulta de políticas:**
-   Mediante el módulo RAG, se ejecuta `consultar_politica_devoluciones` para traer las condiciones vigentes según el tipo de producto y la fecha de compra.
+   Mediante el módulo RAG, para traer las condiciones vigentes según el tipo de producto.
 
 4. **Verificación de elegibilidad:**
-   Con la información de la orden y la política, el agente ejecuta `verificar_elegibilidad_producto`.
+   Con la información de la orden y la política, el agente ejecuta  `verify_eligibility_order_tool`.
 
    * Si **no cumple** los criterios, el agente explica el motivo al cliente citando la política.
    * Si **cumple**, continúa al siguiente paso.
 
 5. **Generación de etiqueta:**
-   Se llama a `generar_etiqueta_devolucion` para crear la guía de envío y registrar el proceso.
+   Se llama a `register_return_order` para crear la guía de envío y registrar el proceso.
 
 6. **Notificación y cierre:**
    El agente usa `notificar_cliente` para enviar el comprobante y la etiqueta, actualiza el estado de la orden y registra la auditoría final del caso.
