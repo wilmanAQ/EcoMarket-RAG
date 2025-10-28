@@ -13,7 +13,8 @@ Las herramientas representan las funciones que permiten al agente ejecutar accio
 |------------------|-----------------|----------------------|----------------------|---------------------------|
 | `get_order_tool` | Recupera la información detallada de una orden específica. | ID de la orden. | Información detallada de la orden (productos, valor total, estado, cliente). | Permite al agente consultar detalles de una orden puntual. |
 | `register_return_order` | Registra una nueva orden de devolución en el sistema. | ID de la orden y motivo de devolución. | Confirmación de registro y número de caso. | Automatiza el proceso de devoluciones, generando trazabilidad en el sistema. |
-| `verify_eligibility_order_tool` | Verifica si un producto cumple con las políticas de devolución de EcoMarket. |
+| `verify_eligibility_order_tool` | Verifica si un producto cumple con las políticas de devolución de EcoMarket. | ID de la orden y fecha de compra. | Estado de elegibilidad (aprobado o rechazado) y motivo. | Evalúa si la orden cumple las condiciones para proceder con la devolución. |
+
 
 Estas herramientas funcionan como **módulos independientes**, invocados por el agente según la fase del flujo.
 Todas siguen un formato estructurado de **entrada/salida** y retornan mensajes **JSON controlados**, lo que garantiza **consistencia, interpretabilidad y seguridad**.
